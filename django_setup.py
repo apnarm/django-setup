@@ -24,7 +24,7 @@ DJANGO_BASE = 'DJANGO_BASE'
 DJANGO_APP = 'DJANGO_APP'
 DEFAULT_NETWORK = 'default'
 DEFAULT_ENVIRON = 'localdev'
-SETTINGS_MODULE_BASE = 'config.settings.sites.'
+DEFAULT_SETTINGS_BASE = 'config.settings.sites'
 
 
 def common_init(env: Env = None):
@@ -93,12 +93,12 @@ def parse_commandline(env: Env = None):
     prog, env, environment_settings, network_settings = default_settings(env)
 
     def _help(_option: Option, _opt: str, _args):
-        settings['network_keys'] = list(network_settings.keys())
+        environment_settings['network_keys'] = list(network_settings.keys())
         print(__doc__.format(**environment_settings))
         exit(0)
 
     def _setting(_option: Option, _opt: str, _args: Any):
-        return _args
+        return int(_args) if _opt in ('u', 'i') else _args
 
     def _network(_option: Union[Option, None], _opt: Union[str, None], _args):
         if _args in network_settings:
@@ -157,23 +157,7 @@ def parse_commandline(env: Env = None):
         DJANGO_READ_DOT_ENV_FILE=1 if environment_settings['dotenv'] else None
     )
 
-    site_name = environment_settings['network']
-    settings_module = f"{SETTINGS_MODULE_BASE}{site_name}"
-    settings_class = f"{site_name.title()}Settings"
-    env.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
-    env.setdefault('DJANGO_SETTINGS_CLASS', settings_class)
-
-    settings_module_name = env.get('DJANGO_SETTINGS_MODULE')
-    if ':' in settings_module_name:
-        # django class settings has stomped the environment, so use what it has set
-        settings_module, settings_class = settings_module_name.rsplit(':', maxsplit=1)
-    else:
-        settings_module_name = f"{settings_module}:{settings_class}"
-
-    env.set("DJANGO_SETTINGS_MODULE", settings_module)
-    env.set('DJANGO_SETTINGS_CLASS', settings_class)
-
-    def print_settings(redirect_to):
+    def print_settings(redirect_to, settings_module):
         with redirect_stdout(redirect_to):
             print(f"SITE_ID={environment_settings['site_id']}\n"
                   f"SITE_UI={environment_settings['site_ui']}\n"
@@ -182,17 +166,30 @@ def parse_commandline(env: Env = None):
                   f"DJANGO_READ_DOT_ENV_FILE={environment_settings['dotenv']}\n"
                   f"NOT_WEB_MODE={environment_settings['noweb']}\n"
                   f"RUN_AS_MOBILE={environment_settings['mobile']}\n"
-                  f"DJANGO_CLASS_SETTINGS={settings_module_name}\n",
+                  f"DJANGO_SETTINGS={settings_module}\n",
                   flush=True, end='')
 
-    if environment_settings['verbose']:
-        print_settings(sys.stderr)
-        # reset this, so we don't repeat if we are running under stat reloader
-        env.set('DJANGO_VERBOSE', False)
+    site_name = environment_settings['network']
+    settings_module_base = env('SETTINGS_BASE', DEFAULT_SETTINGS_BASE)
+    settings_module = f"{settings_module_base}.{site_name}" if site_name else settings_module_base
+    settings_module_name = env('DJANGO_SETTINGS_MODULE', settings_module)
 
     try:
         # noinspection PyUnresolvedReferences
         import class_settings
+
+        settings_class = f"{site_name.title()}Settings"
+        env.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
+        env.setdefault('DJANGO_SETTINGS_CLASS', settings_class)
+
+        if ':' in settings_module_name:
+            # django class settings has stomped the environment, so use what it has set
+            settings_module, settings_class = settings_module_name.rsplit(':', maxsplit=1)
+        else:
+            settings_module_name = f"{settings_module}:{settings_class}"
+
+        env.set("DJANGO_SETTINGS_MODULE", settings_module)
+        env.set('DJANGO_SETTINGS_CLASS', settings_class)
 
         # workaround for double setup with Pycharm to force correct class-based settings - its run/debug config
         # will attempt to load Django settings *first* before here, so we effectively unhook the existing wrapped
@@ -206,8 +203,16 @@ def parse_commandline(env: Env = None):
             settings._wrapped = empty
 
         class_settings.setup()
-    except ImportError:
-        pass
+    except ModuleNotFoundError:
+        import django
+
+        env.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
+        django.setup()
+
+    if environment_settings['verbose']:
+        print_settings(sys.stderr, settings_module_name)
+        # reset this, so we don't repeat if we are running under stat reloader
+        env.set('DJANGO_VERBOSE', False)
 
     return prog, env, environment_settings
 
