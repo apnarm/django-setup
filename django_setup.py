@@ -218,6 +218,20 @@ def parse_commandline(env: Env = None, setup: bool = False):
     return prog, env, environment_settings
 
 
+class DjangoSetup():
+    def __init__(self, env: Env = None):
+        self.env = env
+        self.prog = None
+        self.settings = None
+
+    def __enter__(self):
+        self.prog, self.env, self.settings = parse_commandline(self.env, setup=True)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+
 if __name__ == "__main__":
     raise SystemError(
         "This module is not directly runnable. It is used by other utilities "
