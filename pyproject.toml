@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-setup"
-version = "1.0.1"
+version = "1.0.2"
 description = "Module for Django setup and additional commandline parsing"
 authors = ["David Nugent <davidn@news.com.au>"]
 readme = "README.md"

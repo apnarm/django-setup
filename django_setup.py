@@ -86,7 +86,7 @@ def default_settings(env: Env = None):
     return prog, env, environment_settings, network_settings
 
 
-def parse_commandline(env: Env = None):
+def parse_commandline(env: Env = None, setup: bool = False):
     from cmdline import Option, system_args, redirect_stdout
 
     prog, env, environment_settings, network_settings = default_settings(env)
@@ -203,9 +203,11 @@ def parse_commandline(env: Env = None):
 
         class_settings.setup()
     except ModuleNotFoundError:
-        import django
 
         env.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
+
+    if setup:
+        import django
         django.setup()
 
     if environment_settings['verbose']:
