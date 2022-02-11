@@ -32,9 +32,8 @@ def common_init(env: Env = None):
     from pathlib import Path
     from cmdline import add_pythonpath
 
-    # simply resolve (non-strict) original command from sys.argv
-    argv0 = Path(sys.argv[0]).resolve()
-    prog = argv0.name
+    # simply use the original command from sys.argv
+    prog = Path(sys.argv[0]).name
 
     env = env or Env()
     # determine where the basedir is
