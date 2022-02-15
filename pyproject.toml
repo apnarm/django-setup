@@ -1,17 +1,17 @@
 [tool.poetry]
 name = "django-setup"
-version = "1.0.3"
+version = "1.0.4"
 description = "Module for Django setup and additional commandline parsing"
 authors = ["David Nugent <davidn@news.com.au>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-cmdline-mini = "^1.0.2"
-django-settings-env = "^3.0.1"
+cmdline-mini = "~1.0"
+django-settings-env = "~3.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.0.0"
+pytest = "~7.0"
 
 [tool.pytest.ini_options]
 pythonpath = [".", "tests"]

@@ -202,8 +202,8 @@ def parse_commandline(env: Env = None, setup: bool = False):
             settings._wrapped = empty
 
         class_settings.setup()
-    except ModuleNotFoundError:
 
+    except ModuleNotFoundError:
         env.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
     if setup:
@@ -218,14 +218,16 @@ def parse_commandline(env: Env = None, setup: bool = False):
     return prog, env, environment_settings
 
 
-class DjangoSetup():
-    def __init__(self, env: Env = None):
+class DjangoSetup:
+
+    def __init__(self, env: Env = None, setup=True):
         self.env = env
         self.prog = None
         self.settings = None
+        self.setup = setup
 
     def __enter__(self):
-        self.prog, self.env, self.settings = parse_commandline(self.env, setup=True)
+        self.prog, self.env, self.settings = parse_commandline(self.env, setup=self.setup)
         return self
 
     def __exit__(self, type, value, traceback):
