@@ -125,7 +125,9 @@ def parse_commandline(env: Env = None, setup: bool = False):
             environment_settings.update(network_settings[prog])
 
     def error_args(message):
-        print(f'{prog}: warning: {message}', file=sys.stderr)
+        # If we are running an external script then there might be extra args/kwargs so don't warn the user
+        if '.py' not in prog:
+            print(f'{prog}: warning: {message}', file=sys.stderr)
         # pycharm and possibly pydev also use pre-command args for passing debugger client
         # connect args so complain in case of user error but otherwise do not quit
         # exit(1)
