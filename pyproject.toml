@@ -6,9 +6,9 @@ authors = ["David Nugent <davidn@news.com.au>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-cmdline-mini = "~1.0"
-django-settings-env = "~3.0"
+python = "^3.11.7"
+cmdline-mini = "~1.0.2"
+django-settings-env = "~4.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "~7.0"
